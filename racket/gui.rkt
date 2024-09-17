@@ -10,6 +10,8 @@
          racket/system)
 
 (provide txt/gui
+         embedded-ns
+         set-embedded-ns!
          make-initial-repl-namespace)
 
 ;; Attempt to load racket/gui/base eagerly, instantiating it in our
@@ -48,6 +50,12 @@
 
 (define-namespace-anchor anchor)
 (define our-ns (namespace-anchor->empty-namespace anchor))
+(define embedded-ns #f)
+(define run-when-embedded #f)
+(define (set-embedded-ns! ns f)
+  ; f should be a function of 1 argumented new-ns
+  (set! embedded-ns ns)
+  (set! run-when-embedded f))
 (define (make-initial-repl-namespace)
   (define new-ns (make-base-namespace))
 
@@ -67,6 +75,9 @@
   ;; see how we do this using file/convertible, see print.rkt and
   ;; image.rkt.
   (namespace-attach-module our-ns 'file/convertible new-ns)
+
+  (when embedded-ns
+    (run-when-embedded new-ns))
 
   new-ns)
 
